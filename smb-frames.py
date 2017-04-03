@@ -6,7 +6,6 @@ import datetime
 import subprocess
 import collections
 import numpy as np
-# import matplotlib.pyplot as plt
 import scipy.signal
 
 
@@ -137,9 +136,13 @@ def running_max(xs, r):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--plot', '-p', action='store_true')
     parser.add_argument('from_', type=timestamp)
     parser.add_argument('to', type=timestamp)
     args = parser.parse_args()
+
+    if args.plot:
+        import matplotlib.pyplot as plt
 
     framerate = 30
 
@@ -228,7 +231,6 @@ def main():
         digit_diff = uint8absdiff(digitdata, axis=0).mean(axis=2)
         digit_diff = np.maximum(digit_diff[:, :-1], digit_diff[:, 1:])
 
-        # time = (f1 + np.arange(change.shape[1])) / framerate
         d2 = np.maximum(0, change[2] - change[1])
         d1 = np.maximum(0, change[1] - change[0])
         d12 = np.maximum(d1, d2)
@@ -243,6 +245,13 @@ def main():
         if len(level_start) == len(level_stop) + 1 and np.any(change2 > 12):
             level_stop.append(f2)
             print_stop()
+
+        if args.plot:
+            time = (f1 + np.arange(change.shape[1])) / framerate
+            plt.plot(time, d12)
+            plt.plot(time[:len(change2)], change2, 'k')
+            plt.plot(time[timer_peaks], d12[timer_peaks], 'o')
+            plt.show()
 
     level_stop_augmented = (
         [args.from_ * framerate] +
