@@ -4,30 +4,8 @@ import json
 import argparse
 import datetime
 import subprocess
-import collections
 import numpy as np
 import scipy.signal
-
-
-def fill_in_skipped(xs):
-    # From github.com/TK-IT/regnskab regnskab/images/extract.py
-    diff = np.diff(xs)
-    m = np.median(diff)
-    # We expect every row height to be roughly m.
-    # If a row height is more than 1.5 m, we skipped a row.
-    skipped = np.round((diff - m) / m)
-    fixed = []
-    for y, extra in zip(xs[:-1], skipped):
-        fixed.append(y)
-        for i in range(int(extra)):
-            fixed.append(y + (i+1) * m)
-    fixed.append(xs[-1])
-    return fixed
-
-
-# From github.com/TK-IT/regnskab regnskab/images/extract.py
-PeaksResult = collections.namedtuple(
-    'PeaksResult', 'peaks cutoff min_cutoff max_cutoff opt_cutoff'.split())
 
 
 def find_above(xs, cutoff):
@@ -42,7 +20,7 @@ def find_above(xs, cutoff):
     return start, end
 
 
-def find_peaks(xs, cutoff, skip_start=True, skip_end=True, full=False):
+def find_peaks(xs, cutoff, skip_start=True, skip_end=True):
     # From github.com/TK-IT/regnskab regnskab/images/extract.py
     xs = np.asarray(xs).ravel()
     n = len(xs)
@@ -56,18 +34,7 @@ def find_peaks(xs, cutoff, skip_start=True, skip_end=True, full=False):
         peaks = peaks[peaks > m/2]
     if skip_end:
         peaks = peaks[peaks < n - m/2]
-    if not full:
-        return peaks
-    if len(peaks) == 0:
-        return PeaksResult(
-            peaks, cutoff, None, None, None)
-    maxima = scipy.signal.argrelmax(xs)[0]
-    maxima_vals = xs[maxima]
-    min_cutoff = np.max(maxima_vals[maxima_vals <= cutoff])
-    max_cutoff = np.min(maxima_vals[maxima_vals > cutoff])
-    opt_cutoff = min_cutoff + (max_cutoff - min_cutoff) / 2
-    return PeaksResult(
-        peaks, cutoff, min_cutoff, max_cutoff, opt_cutoff)
+    return peaks
 
 
 def uint8absdiff(x, axis):
@@ -95,15 +62,6 @@ def timestamp(s):
     return float(mo.group(1) or '0') * 60 + float(mo.group(2))
 
 
-def blank_when_above(xs, ys, y_threshold, margin, blank=0):
-    n = len(xs)
-    assert xs.shape == ys.shape == (n,), (xs.shape, ys.shape)
-    start, end = find_above(ys, y_threshold)
-    for i, j in zip(start, end):
-        xs[max(0, i-margin):min(n, j+margin)] = blank
-    return xs
-
-
 def running_op(xs, r, op):
     n, = xs.shape
     d = 2*r+1
@@ -128,10 +86,6 @@ def running_min(xs, r):
     [1 0 0 0 1]
     '''
     return running_op(xs, r, np.minimum)
-
-
-def running_max(xs, r):
-    return running_op(xs, r, np.maximum)
 
 
 def main():
@@ -227,15 +181,13 @@ def main():
         # indicating the end of the level.
         change2 = uint8absdiffdist(digitdata[2], axis=0, d=3).mean(axis=1)
         change2 = running_min(change2, 8)
-        # change2 = running_max(change2, 8)
         digit_diff = uint8absdiff(digitdata, axis=0).mean(axis=2)
         digit_diff = np.maximum(digit_diff[:, :-1], digit_diff[:, 1:])
 
         d2 = np.maximum(0, change[2] - change[1])
         d1 = np.maximum(0, change[1] - change[0])
         d12 = np.maximum(d1, d2)
-        timer_peaks_output = find_peaks(d12, 7.5, full=True)
-        timer_peaks = timer_peaks_output[0]
+        timer_peaks = find_peaks(d12, 7.5)
         # print('One time unit is %s frames' % np.median(np.diff(timer_peaks)))
         if len(timer_peaks) <= 1:
             continue
