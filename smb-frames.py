@@ -6,8 +6,7 @@ import datetime
 import subprocess
 import collections
 import numpy as np
-# import tensorflow as tf
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import scipy.signal
 
 
@@ -200,8 +199,7 @@ def main():
               (level_name(len(level_stop)-1),
                f/framerate,
                datetime.timedelta(seconds=level_start[-1] / framerate),
-               datetime.timedelta(seconds=level_stop[-1] / framerate),
-              ))
+               datetime.timedelta(seconds=level_stop[-1] / framerate)))
 
     for f1, f2 in zip(light_i, light_j):
         framedata = all_frames[f1:f2]
@@ -210,15 +208,15 @@ def main():
         # print("Section [%s:%s] of length %s" %
         #       (f1, f2, datetime.timedelta(seconds=seconds)))
         if len(level_start) == 0:
-            print("Darkness at %s" % (datetime.timedelta(seconds=f2/framerate),))
+            print("Darkness at %s" %
+                  (datetime.timedelta(seconds=f2/framerate),))
         if seconds < 5:
             continue
 
         digitdata = np.asarray([
             framedata[:, :, i:i+digit_width, :].reshape(nframes, -1)
             for i in range(0, width, digit_width)])
-        time = np.arange(f1, f2) / framerate
-        # plt.plot(time, 
+        # time = np.arange(f1, f2) / framerate
 
         change = uint8absdiff(digitdata, axis=1).mean(axis=2)
 
@@ -230,7 +228,7 @@ def main():
         digit_diff = uint8absdiff(digitdata, axis=0).mean(axis=2)
         digit_diff = np.maximum(digit_diff[:, :-1], digit_diff[:, 1:])
 
-        time = (f1 + np.arange(change.shape[1])) / framerate
+        # time = (f1 + np.arange(change.shape[1])) / framerate
         d2 = np.maximum(0, change[2] - change[1])
         d1 = np.maximum(0, change[1] - change[0])
         d12 = np.maximum(d1, d2)
@@ -246,20 +244,14 @@ def main():
             level_stop.append(f2)
             print_stop()
 
-        # plt.plot(time, d12)
-        # plt.plot(time[:len(change2)], change2, 'k')
-        # margin = int(framerate / 6)  # 5 frames at 30 fps
-        # plt.plot(time[timer_peaks], d12[timer_peaks], 'o')
-        # # plt.plot(time, np.maximum(0, change[0]))
-        # # for i, digit in enumerate(change):
-        # #     plt.plot(time, (3-i)*digit)
-        # plt.show()
-
     level_stop_augmented = (
         [args.from_ * framerate] +
         level_stop[:-1] +
         [args.to * framerate])
     s0 = level_stop_augmented[0]
+
+    # "Urn format", to be imported by
+    # https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/Model/RunFactories/UrnRunFactory.cs
     obj = {
         'title': '',
         'attempt_count': 1,
@@ -268,8 +260,10 @@ def main():
             {
                 'title': level_name(i),
                 'time': str(datetime.timedelta(seconds=(s2 - s0)/framerate)),
-                'best_time': str(datetime.timedelta(seconds=(s2 - s0)/framerate)),
-                'best_segment': str(datetime.timedelta(seconds=(s2 - s1)/framerate)),
+                'best_time':
+                str(datetime.timedelta(seconds=(s2 - s0)/framerate)),
+                'best_segment':
+                str(datetime.timedelta(seconds=(s2 - s1)/framerate)),
             }
             for i, (s1, s2) in enumerate(zip(level_stop_augmented[:-1],
                                              level_stop_augmented[1:]))
@@ -277,16 +271,6 @@ def main():
     }
     with open('splits.json', 'w') as fp:
         json.dump(obj, fp, indent=4)
-
-    # Detect the following:
-    # 1) Timer goes crazy (change2)
-    # 2) Darkness after 1)
-    # 3) Timer goes normal after 2) (timer_peaks)
-
-    # crazy_i, crazy_j = find_above(change2, 7.5)
-    # for i, j in zip(crazy_i, crazy_j):
-    #     next_ten_seconds = darkness[crazy_j:crazy_j+10*framerate]
-    #     is_dark = (darkness >
 
 
 if __name__ == '__main__':
