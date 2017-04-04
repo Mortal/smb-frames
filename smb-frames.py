@@ -257,12 +257,17 @@ def darbian_splits():
     args = parser.parse_args()
 
     framerate, all_frames = extract_frames(args.input_filename, args.crop)
-    framerate, all_splits = extract_frames(args.input_filename, args.crop_labels)
     nframes, height, width, channels = all_frames.shape
 
     for i, (f1, f2, extra) in enumerate(find_levels(framerate, all_frames)):
         print("Detected split at %s" % f2)
 
+    framerate, all_splits = extract_frames(args.input_filename, args.crop_labels)
+    change = (
+        uint8absdiff(all_splits.reshape(nframes, -1), axis=0) ** 2.0).mean(axis=1)
+    i, j = find_above(change, 250)
+    print(i)
+
 
 if __name__ == '__main__':
-    darbian_splits()
+    main()
