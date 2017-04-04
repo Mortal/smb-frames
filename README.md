@@ -56,7 +56,6 @@ to the number of seconds to pass to `smb-frames.py -d`.
 
 ```
 rav@alcyone:~/work/smb-frames$ python smb-frames.py -i SMB*v132979603.mp4 -f 12.2 -t 36:34.2 -c 42x14+374+37 -d 0.05
-66305 frames = 0:36:50.166667
 Darkness at 0:00:06
 Darkness at 0:00:10.266667
 Darkness at 0:00:12.200000
