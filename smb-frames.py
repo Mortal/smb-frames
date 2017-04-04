@@ -128,7 +128,7 @@ def extract_frames(input_filename, crop):
         subprocess.check_call(cmd, stdin=subprocess.DEVNULL)
     size = os.stat(tmp_file).st_size
     nframes, extra = divmod(size, frame_size)
-    assert extra == 0
+    assert extra == 0, (size, frame_size, nframes, extra)
     print('%s frames = %s' %
           (nframes, datetime.timedelta(seconds=nframes / framerate)))
     return framerate, np.memmap(tmp_file, dtype=np.uint8, mode='r',
