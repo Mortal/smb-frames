@@ -111,7 +111,6 @@ digits = 3
 def extract_frames(input_filename, crop):
     framerate = get_framerate(input_filename)
     width, height, left, top = crop
-    digit_width = width // digits
     crop = 'crop=%s:%s:%s:%s' % (width, height, left, top)
 
     tmp_file = '%s_%sx%s+%s+%s.dat' % (
