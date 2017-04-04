@@ -240,3 +240,11 @@ def find_levels(framerate, all_frames):
         state, result = parse_level(state, f1, framedata, framerate)
         if result is not None:
             yield result
+
+
+def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
+    framerate, frame_blocks = stream_frames(
+        input_filename, crop, input_buffer_seconds)
+    light_sections = iter_light_sections(frame_blocks, 100)
+    levels = levels_from_light_sections(framerate, light_sections)
+    return levels

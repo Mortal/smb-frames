@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 import argparse
 
-from smb_timer import (
-    crop_string, iter_light_sections, levels_from_light_sections,
-    stream_frames,
-)
+from smb_timer import crop_string, stream_frames, find_levels_streaming
 from signal import uint8absdiff, find_above
 import heapq
 
 
-def actual_splits(input_filename, crop_labels, buffer_seconds):
+def iter_actual_splits(input_filename, crop_labels, input_buffer_seconds=5):
     framerate, all_frames = stream_frames(
-        input_filename, crop_labels, buffer_seconds)
+        input_filename, crop_labels, input_buffer_seconds)
     offset = 0
     for frames in all_frames:
         nframes = len(frames)
@@ -29,14 +26,10 @@ def main():
     parser.add_argument('--crop-labels', '-l', required=True, type=crop_string)
     args = parser.parse_args()
 
-    b = 5
-
-    framerate, frame_blocks = stream_frames(args.input_filename, args.crop, b)
-    light_sections = iter_light_sections(frame_blocks, 100)
-    levels = levels_from_light_sections(framerate, light_sections)
+    levels = find_levels_streaming(args.input_filename, args.crop)
     detected = ((f2, 'detected') for f1, f2, extra in levels)
-    actual = ((f, 'actual')
-              for f in actual_splits(args.input_filename, args.crop_labels, b))
+    actual_splits = iter_actual_splits(args.input_filename, args.crop_labels)
+    actual = ((f, 'actual') for f in actual_splits)
 
     for x in heapq.merge(actual, detected):
         print(*x)
