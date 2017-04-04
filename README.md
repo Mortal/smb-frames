@@ -55,7 +55,7 @@ to the number of seconds to pass to `smb-frames.py -d`.
 ## Example output from smb-frames.py
 
 ```
-rav@alcyone:~/work/smb-frames$ python smb-frames.py -i SMB*v132979603.mp4 -f 12.2 -t 36:34.2 -c 42x14+374+37 -d 0.05
+rav@alcyone:~/work/smb-frames$ python3 smb-frames.py -i SMB*v132979603.mp4 -f 12.2 -t 36:34.2 -c 42x14+374+37 -d 0.05
 Darkness at 0:00:06
 Darkness at 0:00:10.266667
 Darkness at 0:00:12.200000
@@ -117,7 +117,7 @@ D-4 67.07 (from 0:35:43.066667 to 0:36:50.133333)
 ## Example output from darbian-splits.py
 
 ```
-rav@alcyone:~/work/smb-frames$ python darbian-splits.py -i *-v133288238.mp4 -c 84x28+1118+74 -l 54x132+2+322
+rav@alcyone:~/work/smb-frames$ python3 darbian-splits.py -i *-v133288238.mp4 -c 84x28+1118+74 -l 54x132+2+322
 Darkness at 0:00:11.916667
 /usr/lib/python3.6/site-packages/numpy/core/fromnumeric.py:2889: RuntimeWarning: Mean of empty slice.
   out=out, **kwargs)
