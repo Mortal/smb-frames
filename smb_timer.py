@@ -222,9 +222,8 @@ def levels_from_light_sections(framerate, light_sections):
             level_start = f1
             first = False
         if level_start is not None and np.any(change2 > 12):
-            result = level_start, f2, (d12, change2, timer_peaks)
+            yield level_start, f2, (d12, change2, timer_peaks)
             level_start = None
-            yield result
 
 
 def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
