@@ -203,7 +203,7 @@ def parse_level(state, offset, framedata, framerate):
 def levels_from_light_sections(framerate, light_sections):
     state = None
     for f1, framedata in light_sections:
-        state, result = parse_level(state, f1, framedata, framerate)
+        state, result = parse_level(state, f1, framedata[:-1], framerate)
         if result is not None:
             yield result
 
