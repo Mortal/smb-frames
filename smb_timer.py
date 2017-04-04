@@ -172,6 +172,11 @@ def iter_light_sections(frame_blocks, cutoff):
 
 
 def levels_from_light_sections(framerate, light_sections):
+    '''
+    Given iterator over light sections, compute the times at which levels
+    start and stop.
+    '''
+
     first = True
     level_start = None
     for f1, framedata in light_sections:
@@ -210,6 +215,8 @@ def levels_from_light_sections(framerate, light_sections):
         timer_peaks = find_peaks(d12, 7.5)
         # print('One time unit is %s frames' % np.median(np.diff(timer_peaks)))
         if len(timer_peaks) <= 1:
+            # The timer wasn't running in this light section
+            assert level_start is None
             continue
         if level_start is None:
             level_start = f1
@@ -221,6 +228,14 @@ def levels_from_light_sections(framerate, light_sections):
 
 
 def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
+    '''
+    Given specification of cropped video, compute times when levels start and
+    stop.
+
+    - input_filename: path to video file
+    - crop_data: tuple of (width, height, left, top) indicating where the SMB
+      level timer is
+    '''
     framerate, frame_blocks = stream_frames(
         input_filename, crop, input_buffer_seconds)
     light_sections = iter_light_sections(frame_blocks, 100)
