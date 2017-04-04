@@ -102,8 +102,7 @@ D-4 67.07 (from 0:35:43.066667 to 0:36:50.133333)
 # Example output from darbian-splits.py
 
 ```
-rav@alcyone:~/work/smb-frames$ python darbian-splits.py -i Lost*-v133288238.mp4 -c 84x28+1118+74 -l 54x132+2+322
-43201 frames = 0:12:00.016667
+rav@alcyone:~/work/smb-frames$ python darbian-splits.py -i *-v133288238.mp4 -c 84x28+1118+74 -l 54x132+2+322
 Darkness at 0:00:11.916667
 /usr/lib/python3.6/site-packages/numpy/core/fromnumeric.py:2889: RuntimeWarning: Mean of empty slice.
   out=out, **kwargs)
@@ -118,24 +117,55 @@ Darkness at 0:01:08.833333
 Darkness at 0:01:13.083333
 Darkness at 0:01:15.066667
 Darkness at 0:01:48.933333
-Detected split at 6536
-Detected split at 9184
-Detected split at 11226
-Detected split at 13460
-Detected split at 15760
-Detected split at 18335
-Detected split at 20297
-Detected split at 22363
-Detected split at 24369
-Detected split at 27963
-Detected split at 29968
-Detected split at 32393
-Detected split at 34502
-Detected split at 36633
-Detected split at 38053
-Detected split at 40728
-Detected split at 43200
-43201 frames = 0:12:00.016667
-[ 2160  3840 13461 15767 18339 20302 22366 24371 27966 29971 32397 34505
- 36637 38270]
+2160 actual
+3840 actual
+6536 detected
+9184 detected
+11226 detected
+13460 detected
+13461 actual
+15760 detected
+15767 actual
+18335 detected
+18339 actual
+20297 detected
+20302 actual
+22363 detected
+22366 actual
+24369 detected
+24371 actual
+27963 detected
+27966 actual
+29968 detected
+29971 actual
+32393 detected
+32397 actual
+34502 detected
+34505 actual
+36633 detected
+36637 actual
+38053 detected
+38270 actual
+40728 detected
+43376 detected
+45418 detected
+47651 detected
+47655 actual
+50035 detected
+50040 actual
+51677 detected
+52988 actual
+53213 detected
+54826 detected
+59206 detected
+61876 detected
+63917 detected
+66130 detected
+66135 actual
+68431 detected
+68436 actual
+71003 detected
+71008 actual
+72968 detected
+...
 ```
