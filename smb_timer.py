@@ -202,46 +202,6 @@ def levels_from_light_sections(framerate, light_sections):
             yield result
 
 
-def extract_frames(input_filename, crop):
-    framerate = get_framerate(input_filename)
-    width, height, left, top = crop
-    crop = 'crop=%s:%s:%s:%s' % (width, height, left, top)
-
-    base = os.path.splitext(os.path.basename(input_filename))[0]
-    # youtube-dl appends "-v{id}" to Twitch.tv downloads,
-    # so we can use this to make shorter filenames
-    base = re.sub(r'.*-(v\d+)$', r'\1', base)
-    tmp_file = '%s_%sx%s+%s+%s.dat' % (base, width, height, left, top)
-
-    channels = 3
-    frame_size = width * height * channels
-
-    cmd = ('ffmpeg', '-i', input_filename,
-           '-filter:v', crop,
-           '-f', 'image2pipe', '-pix_fmt', 'rgb24',
-           '-vcodec', 'rawvideo', tmp_file)
-    if not os.path.exists(tmp_file):
-        subprocess.check_call(cmd, stdin=subprocess.DEVNULL)
-    size = os.stat(tmp_file).st_size
-    nframes, extra = divmod(size, frame_size)
-    assert extra == 0, (size, frame_size, nframes, extra)
-    print('%s frames = %s' %
-          (nframes, datetime.timedelta(seconds=nframes / framerate)))
-    return framerate, np.memmap(tmp_file, dtype=np.uint8, mode='r',
-                                shape=(nframes, height, width, channels))
-
-
-def find_levels(framerate, all_frames):
-    light_i, light_j = find_above(all_frames.max(axis=(1, 2, 3)), 100)
-
-    state = None
-    for f1, f2 in zip(light_i, light_j):
-        framedata = all_frames[f1:f2]
-        state, result = parse_level(state, f1, framedata, framerate)
-        if result is not None:
-            yield result
-
-
 def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
     framerate, frame_blocks = stream_frames(
         input_filename, crop, input_buffer_seconds)
