@@ -1,0 +1,5 @@
+.swp
+.*.swp
+*.dat
+*.mp4
+__pycache__
