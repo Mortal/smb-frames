@@ -1,4 +1,20 @@
-# Splits for zzz pc's D4 record
+# Detect end-of-level in SMB All-stars
+
+When a level ends in Super Mario Bros. All-Stars
+or Lost Levels All-Stars, the timer quickly counts down to zero.
+Thus, if you look only at the timer and not at anything else,
+you can detect when a level ends by looking for "flicker" in the timer
+and waiting for the fade to black.
+
+This is the principle used by `smb-frames.py` to produce splits
+for world record attempts at Super Mario Bros. All-Stars.
+
+The script uses Python with NumPy for fast numeric math,
+and invokes `ffmpeg` to crop the video to just the timer
+and extract the frames in that way.
+
+
+## Splits for zzz pc's D4 record
 
 Download the video with `youtube-dl`:
 
@@ -18,7 +34,7 @@ Make sure you have ffmpeg installed and then run the Python 3 program
 The splits will be placed in `splits.json`.
 
 
-# How long does darbian wait after darkness before splitting?
+## How long does darbian wait after darkness before splitting?
 
 Download a video of darbian and locate a portion of the video that changes
 whenever he splits, and locate the game timer.
@@ -36,7 +52,7 @@ Divide the frame difference by the frame rate (60 FPS)
 to the number of seconds to pass to `smb-frames.py -d`.
 
 
-# Example output from smb-frames.py
+## Example output from smb-frames.py
 
 ```
 rav@alcyone:~/work/smb-frames$ python smb-frames.py -i SMB*v132979603.mp4 -f 12.2 -t 36:34.2 -c 42x14+374+37 -d 0.05
@@ -99,7 +115,7 @@ D-3 35.60 (from 0:35:06 to 0:35:41.600000)
 D-4 67.07 (from 0:35:43.066667 to 0:36:50.133333)
 ```
 
-# Example output from darbian-splits.py
+## Example output from darbian-splits.py
 
 ```
 rav@alcyone:~/work/smb-frames$ python darbian-splits.py -i *-v133288238.mp4 -c 84x28+1118+74 -l 54x132+2+322
