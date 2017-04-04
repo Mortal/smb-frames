@@ -95,34 +95,34 @@ def crop_string(s):
     return tuple(map(int, mo.group(1, 2, 3, 4)))
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--plot', '-p', action='store_true')
-    parser.add_argument('--from', '-f', dest='from_', type=timestamp)
-    parser.add_argument('--to', '-t', type=timestamp)
-    parser.add_argument('--input-filename', '-i', required=True)
-    parser.add_argument('--crop', '-c', required=True, type=crop_string)
-    args = parser.parse_args()
+def get_framerate(f):
+    ffmpeg_output = subprocess.check_output(
+        ('ffprobe', f),
+        stdin=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True)
+    mo = re.search('(\d+) fps', ffmpeg_output)
+    return int(mo.group(1))
 
-    if args.plot:
-        import matplotlib.pyplot as plt
 
-    framerate = 30
+digits = 3
 
-    digits = 3
-    width, height, left, top = args.crop
+
+def extract_frames(input_filename, crop):
+    framerate = get_framerate(input_filename)
+    width, height, left, top = crop
     digit_width, extra = divmod(width, digits)
     assert extra == 0, 'Width of three digits must be div. by three'
     crop = 'crop=%s:%s:%s:%s' % (width, height, left, top)
 
     tmp_file = '%s_%sx%s+%s+%s.dat' % (
-        os.path.splitext(os.path.basename(args.input_filename))[0],
+        os.path.splitext(os.path.basename(input_filename))[0],
         width, height, left, top)
 
     channels = 3
     frame_size = width * height * channels
 
-    cmd = ('ffmpeg', '-i', args.input_filename,
+    cmd = ('ffmpeg', '-i', input_filename,
            '-filter:v', crop,
            '-f', 'image2pipe', '-pix_fmt', 'rgb24',
            '-vcodec', 'rawvideo', tmp_file)
@@ -133,44 +133,24 @@ def main():
     assert extra == 0
     print('%s frames = %s' %
           (nframes, datetime.timedelta(seconds=nframes / framerate)))
-    all_frames = np.memmap(tmp_file, dtype=np.uint8, mode='r',
-                           shape=(nframes, height, width, channels))
+    return framerate, np.memmap(tmp_file, dtype=np.uint8, mode='r',
+                                shape=(nframes, height, width, channels))
+
+
+def find_levels(framerate, all_frames):
     light_i, light_j = find_above(all_frames.max(axis=(1, 2, 3)), 100)
 
-    level_start = []
-    level_stop = []
-
-    def print_level(n, s, f):
-        world, part = divmod(n, 4)
-        print("Level %s-%s %s on frame %s (%s)" %
-              (world+1, part+1, s, f,
-               datetime.timedelta(seconds=f/framerate)))
-
-    def print_start():
-        # print_level(len(level_start)-1, 'started', level_start[-1])
-        pass
-
-    def level_name(i):
-        world, part = divmod(i, 4)
-        worlds = '123456789ABCD'
-        return '%s-%s' % (worlds[world], part+1)
-
-    def print_stop():
-        # print_level(len(level_stop)-1, 'ended', level_stop[-1])
-        f = level_stop[-1] - level_start[-1]
-        print("%s %.2f (from %s to %s)" %
-              (level_name(len(level_stop)-1),
-               f/framerate,
-               datetime.timedelta(seconds=level_start[-1] / framerate),
-               datetime.timedelta(seconds=level_stop[-1] / framerate)))
-
+    nframes, height, width, channels = all_frames.shape
+    digit_width = width // digits
+    first = True
+    level_start = None
     for f1, f2 in zip(light_i, light_j):
         framedata = all_frames[f1:f2]
         nframes = len(framedata)
         seconds = nframes/framerate
         # print("Section [%s:%s] of length %s" %
         #       (f1, f2, datetime.timedelta(seconds=seconds)))
-        if len(level_start) == 0:
+        if first:
             print("Darkness at %s" %
                   (datetime.timedelta(seconds=f2/framerate),))
         if seconds < 5:
@@ -197,25 +177,54 @@ def main():
         # print('One time unit is %s frames' % np.median(np.diff(timer_peaks)))
         if len(timer_peaks) <= 1:
             continue
-        if len(level_start) == len(level_stop):
-            level_start.append(f1)
-            print_start()
-        if len(level_start) == len(level_stop) + 1 and np.any(change2 > 12):
-            level_stop.append(f2)
-            print_stop()
+        if level_start is None:
+            level_start = f1
+            first = False
+        if level_start is not None and np.any(change2 > 12):
+            yield level_start, f2, (d12, change2, timer_peaks)
+            level_start = None
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--plot', '-p', action='store_true')
+    parser.add_argument('--from', '-f', dest='from_', type=timestamp)
+    parser.add_argument('--to', '-t', type=timestamp)
+    parser.add_argument('--input-filename', '-i', required=True)
+    parser.add_argument('--crop', '-c', required=True, type=crop_string)
+    args = parser.parse_args()
+
+    if args.plot:
+        import matplotlib.pyplot as plt
+
+    framerate, all_frames = extract_frames(args.input_filename, args.crop)
+    nframes, height, width, channels = all_frames.shape
+
+    def level_name(i):
+        world, part = divmod(i, 4)
+        worlds = '123456789ABCD'
+        return '%s-%s' % (worlds[world], part+1)
+
+    split_at = [args.from_ * framerate]
+    for i, (f1, f2, extra) in enumerate(find_levels(framerate, all_frames)):
+        split_at.append(f2)
+        f = f2 - f1
+        print("%s %.2f (from %s to %s)" %
+              (level_name(i),
+               f/framerate,
+               datetime.timedelta(seconds=f1 / framerate),
+               datetime.timedelta(seconds=f2 / framerate)))
 
         if args.plot:
-            time = (f1 + np.arange(change.shape[1])) / framerate
+            d12, change2, timer_peaks = extra
+            time = (f1 + np.arange(len(d12))) / framerate
             plt.plot(time, d12)
             plt.plot(time[:len(change2)], change2, 'k')
             plt.plot(time[timer_peaks], d12[timer_peaks], 'o')
             plt.show()
+    split_at[-1] = args.to * framerate
 
-    level_stop_augmented = (
-        [args.from_ * framerate] +
-        level_stop[:-1] +
-        [args.to * framerate])
-    s0 = level_stop_augmented[0]
+    s0 = split_at[0]
 
     # "Urn format", to be imported by
     # https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/Model/RunFactories/UrnRunFactory.cs
@@ -232,8 +241,8 @@ def main():
                 'best_segment':
                 str(datetime.timedelta(seconds=(s2 - s1)/framerate)),
             }
-            for i, (s1, s2) in enumerate(zip(level_stop_augmented[:-1],
-                                             level_stop_augmented[1:]))
+            for i, (s1, s2) in enumerate(zip(split_at[:-1],
+                                             split_at[1:]))
         ]
     }
     with open('splits.json', 'w') as fp:
