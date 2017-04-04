@@ -78,18 +78,25 @@ def stream_light_sections(frame_blocks, cutoff):
 
     def iter_chunks():
         offset = 0
+        started = False
         for frame_block in frame_blocks:
             start, end = find_above(frame_block.max(axis=(1, 2, 3)), cutoff)
             for i, j in zip(start, end):
-                if i == 0:
-                    if j == len(frame_block) - 1:
-                        yield INNER, offset + i, frame_block
-                    else:
-                        yield END, offset + i, frame_block[:j]
-                elif j == len(frame_block) - 1:
-                    yield START, offset + i, frame_block[i:]
+                at_start = i == 0
+                at_end = j == len(frame_block) - 1
+                if at_start and started:
+                    yield INNER, offset + i, frame_block[:j+1]
+                    if not at_end:
+                        yield END, None, None
+                        started = False
                 else:
-                    yield FULL, offset + i, frame_block[i:j]
+                    if started:
+                        yield END, None, None
+                    if at_end:
+                        yield START, offset + i, frame_block[i:]
+                        started = True
+                    else:
+                        yield FULL, offset + i, frame_block[i:j+1]
             offset += len(frame_block)
 
     chunks = iter_chunks()
@@ -100,7 +107,6 @@ def stream_light_sections(frame_blocks, cutoff):
             if kind is INNER:
                 yield chunk
             elif kind is END:
-                yield chunk
                 return
             elif kind is FULL:
                 raise ValueError('Unexpected FULL')
