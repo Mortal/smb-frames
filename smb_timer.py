@@ -35,6 +35,16 @@ digits = 3
 
 
 def stream_frames(input_filename, crop_data, buffer_seconds):
+    '''
+    Iterator over cropped video stream.
+
+    - input_filename: path to video file (passed to ffmpeg)
+    - crop_data: tuple of (width, height, left, top) indicating crop
+    - buffer_seconds: how many seconds worth of frames to return at a time
+
+    Returns the framerate and an iterator over frame spans.
+    '''
+
     framerate = get_framerate(input_filename)
     buffer_frames = int(buffer_seconds * framerate)
 
@@ -73,6 +83,16 @@ def stream_frames(input_filename, crop_data, buffer_seconds):
 
 
 def stream_light_sections(frame_blocks, cutoff):
+    '''
+    Given iterator over frame spans, iterate over "light sections" of video.
+
+    A light section is a consecutive portion of the video where the brightest
+    pixel is brighter than the given threshold.
+
+    Yields pairs (offset, iterator), where the iterator yields frame spans
+    in a particular light section.
+    '''
+
     FULL, START, INNER, END = object(), object(), object(), object()
 
     def iter_chunks():
@@ -124,6 +144,11 @@ def stream_light_sections(frame_blocks, cutoff):
 
 
 def iter_light_sections(frame_blocks, cutoff):
+    '''
+    Given iterator over light section frame span iterators,
+    yield entire light sections concatenated into a single buffer.
+    '''
+
     buffer = None
     for offset, chunks in stream_light_sections(frame_blocks, cutoff):
         extra = []
