@@ -111,8 +111,7 @@ digits = 3
 def extract_frames(input_filename, crop):
     framerate = get_framerate(input_filename)
     width, height, left, top = crop
-    digit_width, extra = divmod(width, digits)
-    assert extra == 0, 'Width of three digits must be div. by three'
+    digit_width = width // digits
     crop = 'crop=%s:%s:%s:%s' % (width, height, left, top)
 
     tmp_file = '%s_%sx%s+%s+%s.dat' % (
@@ -141,7 +140,8 @@ def find_levels(framerate, all_frames):
     light_i, light_j = find_above(all_frames.max(axis=(1, 2, 3)), 100)
 
     nframes, height, width, channels = all_frames.shape
-    digit_width = width // digits
+    digit_width, extra = divmod(width, digits)
+    assert extra == 0, 'Width of three digits must be div. by three'
     first = True
     level_start = None
     for f1, f2 in zip(light_i, light_j):
