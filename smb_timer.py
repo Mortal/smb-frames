@@ -247,4 +247,4 @@ def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
         input_filename, crop, input_buffer_seconds)
     light_sections = iter_light_sections(frame_blocks, 100)
     levels = levels_from_light_sections(framerate, light_sections)
-    return levels
+    return framerate, levels

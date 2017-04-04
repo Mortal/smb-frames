@@ -26,7 +26,7 @@ def main():
     parser.add_argument('--crop-labels', '-l', required=True, type=crop_string)
     args = parser.parse_args()
 
-    levels = find_levels_streaming(args.input_filename, args.crop)
+    framerate, levels = find_levels_streaming(args.input_filename, args.crop)
     detected = ((f2, 'detected') for f1, f2, extra in levels)
     actual_splits = iter_actual_splits(args.input_filename, args.crop_labels)
     actual = ((f, 'actual') for f in actual_splits)
