@@ -88,11 +88,20 @@ def running_min(xs, r):
     return running_op(xs, r, np.minimum)
 
 
+def crop_string(s):
+    mo = re.match(r'^(\d+)x(\d+)\+(\d+)\+(\d+)$', s)
+    if not mo:
+        raise ValueError(s)
+    return tuple(map(int, mo.group(1, 2, 3, 4)))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--plot', '-p', action='store_true')
-    parser.add_argument('from_', type=timestamp)
-    parser.add_argument('to', type=timestamp)
+    parser.add_argument('--from', '-f', dest='from_', type=timestamp)
+    parser.add_argument('--to', '-t', type=timestamp)
+    parser.add_argument('--input-filename', '-i', required=True)
+    parser.add_argument('--crop', '-c', required=True, type=crop_string)
     args = parser.parse_args()
 
     if args.plot:
@@ -100,23 +109,20 @@ def main():
 
     framerate = 30
 
-    input_filename = (
-        '/home/rav/Videos/SMB -LL(SNES) Warpless D-4 (Mario) ' +
-        'RTA 36_37(Axe 36_21)-v132979603.mp4')
-
-    # Location of time in video, width:height:left:top
     digits = 3
-    width, height, left, top = 42, 14, 374, 37
+    width, height, left, top = args.crop
     digit_width, extra = divmod(width, digits)
     assert extra == 0, 'Width of three digits must be div. by three'
     crop = 'crop=%s:%s:%s:%s' % (width, height, left, top)
 
-    tmp_file = 'zzz_pc_20170402_%sx%s+%s+%s.dat' % (width, height, left, top)
+    tmp_file = '%s_%sx%s+%s+%s.dat' % (
+        os.path.splitext(os.path.basename(args.input_filename))[0],
+        width, height, left, top)
 
     channels = 3
     frame_size = width * height * channels
 
-    cmd = ('ffmpeg', '-i', input_filename,
+    cmd = ('ffmpeg', '-i', args.input_filename,
            '-filter:v', crop,
            '-f', 'image2pipe', '-pix_fmt', 'rgb24',
            '-vcodec', 'rawvideo', tmp_file)

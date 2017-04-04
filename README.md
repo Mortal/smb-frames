@@ -13,7 +13,7 @@ and the time point in the video where the run ends.
 The splits will be placed in `splits.json`.
 
 ```
-rav@alcyone:~/work/smb-frames$ python smb-frames.py 12.200000 36:34.2
+rav@alcyone:~/work/smb-frames$ python smb-frames.py -i SMB*v132979603.mp4 -f 12.2 -t 36:34.2 -c 42x14+374+37
 66305 frames = 0:36:50.166667
 Darkness at 0:00:06
 Darkness at 0:00:10.266667
