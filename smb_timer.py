@@ -234,47 +234,9 @@ def extract_frames(input_filename, crop):
 def find_levels(framerate, all_frames):
     light_i, light_j = find_above(all_frames.max(axis=(1, 2, 3)), 100)
 
-    nframes, height, width, channels = all_frames.shape
-    digit_width, extra = divmod(width, digits)
-    assert extra == 0, 'Width of three digits must be div. by three'
-    first = True
-    level_start = None
+    state = None
     for f1, f2 in zip(light_i, light_j):
         framedata = all_frames[f1:f2]
-        nframes = len(framedata)
-        seconds = nframes/framerate
-        # print("Section [%s:%s] of length %s" %
-        #       (f1, f2, datetime.timedelta(seconds=seconds)))
-        if first:
-            print("Darkness at %s" %
-                  (datetime.timedelta(seconds=f2/framerate),))
-        if seconds < 5:
-            continue
-
-        digitdata = np.asarray([
-            framedata[:, :, i:i+digit_width, :].reshape(nframes, -1)
-            for i in range(0, width, digit_width)])
-        # time = np.arange(f1, f2) / framerate
-
-        change = uint8absdiff(digitdata, axis=1).mean(axis=2)
-
-        # Find periods where the timer changes rapidly
-        # indicating the end of the level.
-        change2 = uint8absdiffdist(digitdata[2], axis=0, d=3).mean(axis=1)
-        change2 = running_min(change2, 8)
-        digit_diff = uint8absdiff(digitdata, axis=0).mean(axis=2)
-        digit_diff = np.maximum(digit_diff[:, :-1], digit_diff[:, 1:])
-
-        d2 = np.maximum(0, change[2] - change[1])
-        d1 = np.maximum(0, change[1] - change[0])
-        d12 = np.maximum(d1, d2)
-        timer_peaks = find_peaks(d12, 7.5)
-        # print('One time unit is %s frames' % np.median(np.diff(timer_peaks)))
-        if len(timer_peaks) <= 1:
-            continue
-        if level_start is None:
-            level_start = f1
-            first = False
-        if level_start is not None and np.any(change2 > 12):
-            yield level_start, f2, (d12, change2, timer_peaks)
-            level_start = None
+        state, result = parse_level(state, f1, framedata, framerate)
+        if result is not None:
+            yield result
