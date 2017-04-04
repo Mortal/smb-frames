@@ -4,7 +4,7 @@ import argparse
 import datetime
 import numpy as np
 
-from smb_timer import timestamp, crop_string, extract_frames, find_levels
+from smb_timer import timestamp, crop_string, find_levels_streaming
 
 
 def main():
@@ -20,16 +20,14 @@ def main():
     if args.plot:
         import matplotlib.pyplot as plt
 
-    framerate, all_frames = extract_frames(args.input_filename, args.crop)
-    nframes, height, width, channels = all_frames.shape
-
     def level_name(i):
         world, part = divmod(i, 4)
         worlds = '123456789ABCD'
         return '%s-%s' % (worlds[world], part+1)
 
+    framerate, levels = find_levels_streaming(args.input_filename, args.crop)
     split_at = [args.from_ * framerate]
-    for i, (f1, f2, extra) in enumerate(find_levels(framerate, all_frames)):
+    for i, (f1, f2, extra) in enumerate(levels):
         split_at.append(f2 + args.delay * framerate)
         f = f2 - f1
         print("%s %.2f (from %s to %s)" %
