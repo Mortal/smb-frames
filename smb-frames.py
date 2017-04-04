@@ -43,9 +43,11 @@ def extract_frames(input_filename, crop):
     width, height, left, top = crop
     crop = 'crop=%s:%s:%s:%s' % (width, height, left, top)
 
-    tmp_file = '%s_%sx%s+%s+%s.dat' % (
-        os.path.splitext(os.path.basename(input_filename))[0],
-        width, height, left, top)
+    base = os.path.splitext(os.path.basename(input_filename))[0]
+    # youtube-dl appends "-v{id}" to Twitch.tv downloads,
+    # so we can use this to make shorter filenames
+    base = re.sub(r'.*-(v\d+)$', r'\1', base)
+    tmp_file = '%s_%sx%s+%s+%s.dat' % (base, width, height, left, top)
 
     channels = 3
     frame_size = width * height * channels
