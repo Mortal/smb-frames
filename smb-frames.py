@@ -192,6 +192,7 @@ def main():
     parser.add_argument('--to', '-t', type=timestamp)
     parser.add_argument('--input-filename', '-i', required=True)
     parser.add_argument('--crop', '-c', required=True, type=crop_string)
+    parser.add_argument('--delay', '-d', default=0, type=float)
     args = parser.parse_args()
 
     if args.plot:
@@ -207,7 +208,7 @@ def main():
 
     split_at = [args.from_ * framerate]
     for i, (f1, f2, extra) in enumerate(find_levels(framerate, all_frames)):
-        split_at.append(f2)
+        split_at.append(f2 + args.delay * framerate)
         f = f2 - f1
         print("%s %.2f (from %s to %s)" %
               (level_name(i),
