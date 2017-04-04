@@ -180,7 +180,9 @@ def levels_from_light_sections(framerate, light_sections):
     first = True
     level_start = None
     for f1, framedata in light_sections:
+        # Off-by-one for backwards compatibility with published splits
         framedata = framedata[:-1]
+
         nframes, height, width, channels = framedata.shape
         f2 = f1 + nframes
         digit_width, extra = divmod(width, digits)
