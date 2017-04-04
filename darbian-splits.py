@@ -31,6 +31,8 @@ def main():
     actual_splits = iter_actual_splits(args.input_filename, args.crop_labels)
     actual = ((f, 'actual') for f in actual_splits)
 
+    # Note that 'actual' and 'detected' are iterators that read from their own
+    # respective ffmpeg processes, which are in fact running in parallel.
     for x in heapq.merge(actual, detected):
         print(*x, flush=True)
 
