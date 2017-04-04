@@ -32,7 +32,7 @@ def main():
     actual = ((f, 'actual') for f in actual_splits)
 
     for x in heapq.merge(actual, detected):
-        print(*x)
+        print(*x, flush=True)
 
 
 if __name__ == '__main__':
