@@ -1,6 +1,5 @@
 import re
 import subprocess
-import os
 import datetime
 import numpy as np
 from signal import (
