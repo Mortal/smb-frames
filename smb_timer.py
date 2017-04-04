@@ -76,7 +76,7 @@ def stream_frames(input_filename, crop_data, buffer_seconds):
 def stream_light_sections(frame_blocks, cutoff):
     FULL, START, INNER, END = object(), object(), object(), object()
 
-    def f():
+    def iter_chunks():
         offset = 0
         for frame_block in frame_blocks:
             start, end = find_above(frame_block.max(axis=(1, 2, 3)), cutoff)
@@ -92,9 +92,9 @@ def stream_light_sections(frame_blocks, cutoff):
                     yield FULL, offset + i, frame_block[i:j]
             offset += len(frame_block)
 
-    chunks = f()
+    chunks = iter_chunks()
 
-    def g(initial):
+    def iter_light_section(initial):
         yield initial
         for kind, offset, chunk in chunks:
             if kind is INNER:
@@ -113,7 +113,7 @@ def stream_light_sections(frame_blocks, cutoff):
         if kind in (FULL, END):
             yield offset, iter((chunk,))
         elif kind in (START, INNER):
-            yield offset, g(chunk)
+            yield offset, iter_light_section(chunk)
         else:
             raise ValueError('Unexpected %r' % kind)
 
