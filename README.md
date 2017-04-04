@@ -7,10 +7,36 @@ youtube-dl https://www.twitch.tv/videos/132979603
 ```
 
 Make sure you have ffmpeg installed and then run the Python 3 program
-`smb-frames.py` with two arguments: the time point in the video where the run starts,
-and the time point in the video where the run ends.
+`smb-frames.py` with the following arguments:
+
+* `-i SMB*v132979603.mp4` (filename of the downloaded video run)
+* `-f 12.2` (the time point in the video where the run starts)
+* `-t 36:34.2` (the time point where the run ends)
+* `-c 42x14+374+37` (the rectangular region containing the game timer)
+* `-d 0.05` (the number of seconds to add to each split)
 
 The splits will be placed in `splits.json`.
+
+
+# How long does darbian wait after darkness before splitting?
+
+Download a video of darbian and locate a portion of the video that changes
+whenever he splits, and locate the game timer.
+Now run `darbian-splits.py` with the arguments:
+
+* `-i "Lost Levels Warpless D-4 World Record attempts-v133288238.mp4"`
+* `-l 54x132+2+322` (portion that changes on splits)
+* `-c 84x28+1118+74` (game timer)
+
+The first part of the output shows the detected level ends,
+that is, the frames where `smb-frames.py` would make a split
+if not given any `-d`.
+The second part of the output shows when darbian actually made a split.
+Divide the frame difference by the frame rate (60 FPS)
+to the number of seconds to pass to `smb-frames.py -d`.
+
+
+# Example output from smb-frames.py
 
 ```
 rav@alcyone:~/work/smb-frames$ python smb-frames.py -i SMB*v132979603.mp4 -f 12.2 -t 36:34.2 -c 42x14+374+37 -d 0.05
@@ -71,4 +97,45 @@ D-1 34.17 (from 0:33:57.433333 to 0:34:31.600000)
 D-2 31.73 (from 0:34:32.933333 to 0:35:04.666667)
 D-3 35.60 (from 0:35:06 to 0:35:41.600000)
 D-4 67.07 (from 0:35:43.066667 to 0:36:50.133333)
+```
+
+# Example output from darbian-splits.py
+
+```
+rav@alcyone:~/work/smb-frames$ python darbian-splits.py -i Lost*-v133288238.mp4 -c 84x28+1118+74 -l 54x132+2+322
+43201 frames = 0:12:00.016667
+Darkness at 0:00:11.916667
+/usr/lib/python3.6/site-packages/numpy/core/fromnumeric.py:2889: RuntimeWarning: Mean of empty slice.
+  out=out, **kwargs)
+/usr/lib/python3.6/site-packages/numpy/core/_methods.py:80: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+Darkness at 0:00:29.600000
+Darkness at 0:00:33.733333
+Darkness at 0:01:02.133333
+Darkness at 0:01:04.150000
+Darkness at 0:01:07
+Darkness at 0:01:08.833333
+Darkness at 0:01:13.083333
+Darkness at 0:01:15.066667
+Darkness at 0:01:48.933333
+Detected split at 6536
+Detected split at 9184
+Detected split at 11226
+Detected split at 13460
+Detected split at 15760
+Detected split at 18335
+Detected split at 20297
+Detected split at 22363
+Detected split at 24369
+Detected split at 27963
+Detected split at 29968
+Detected split at 32393
+Detected split at 34502
+Detected split at 36633
+Detected split at 38053
+Detected split at 40728
+Detected split at 43200
+43201 frames = 0:12:00.016667
+[ 2160  3840 13461 15767 18339 20302 22366 24371 27966 29971 32397 34505
+ 36637 38270]
 ```
