@@ -38,6 +38,10 @@ def uint8absdiff(x, axis):
                       np.diff(255-x, axis=axis))
 
 
+def uint8distance(x1, x2, axis):
+    return np.minimum(x1-x2, x2-x1)
+
+
 def diffdist(x, axis, d):
     a = tuple(slice(0, -d) if i == axis else slice(None)
               for i in range(x.ndim))
