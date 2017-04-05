@@ -171,7 +171,7 @@ def iter_light_sections(frame_blocks, cutoff):
         yield offset, buffer[:buffer_pos]
 
 
-def levels_from_light_sections(framerate, light_sections):
+def levels_from_light_sections(framerate, light_sections, from_=0):
     '''
     Given iterator over light sections, compute the times at which levels
     start and stop.
@@ -194,7 +194,8 @@ def levels_from_light_sections(framerate, light_sections):
         if first:
             print("Darkness at %s" %
                   (datetime.timedelta(seconds=f2/framerate),))
-        if seconds < 5:
+        if seconds < 5 or f1 < from_*framerate:
+            print("skipping %s %s" % (f1/framerate, seconds))
             continue
 
         digitdata = np.asarray([
@@ -228,7 +229,7 @@ def levels_from_light_sections(framerate, light_sections):
             level_start = None
 
 
-def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
+def find_levels_streaming(input_filename, crop, from_=0, input_buffer_seconds=5):
     '''
     Given specification of cropped video, compute times when levels start and
     stop.
@@ -240,5 +241,5 @@ def find_levels_streaming(input_filename, crop, input_buffer_seconds=5):
     framerate, frame_blocks = stream_frames(
         input_filename, crop, input_buffer_seconds)
     light_sections = iter_light_sections(frame_blocks, 100)
-    levels = levels_from_light_sections(framerate, light_sections)
+    levels = levels_from_light_sections(framerate, light_sections, from_)
     return framerate, levels

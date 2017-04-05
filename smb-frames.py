@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--input-filename', '-i', required=True)
     parser.add_argument('--crop', '-c', required=True, type=crop_string)
     parser.add_argument('--delay', '-d', default=0, type=float)
+    parser.add_argument('--mode')
     args = parser.parse_args()
 
     if args.plot:
@@ -25,7 +26,15 @@ def main():
         worlds = '123456789ABCD'
         return '%s-%s' % (worlds[world], part+1)
 
-    framerate, levels = find_levels_streaming(args.input_filename, args.crop)
+    if args.mode == 'll_any_d-4':
+        level_names = '''1-1 1-2 4-1 4-2 4-3 4-4 5-1 5-2 8-1 8-2 8-3 8-4 A-1
+        A-2 A-3 B-4 D-1 D-2 D-3'''.split() + ['King Koopa']
+
+        def level_name(i):
+            return level_names[i]
+
+    framerate, levels = find_levels_streaming(
+        args.input_filename, args.crop, args.from_)
     split_at = [args.from_ * framerate]
     for i, (f1, f2, extra) in enumerate(levels):
         split_at.append(f2 + args.delay * framerate)
@@ -66,7 +75,11 @@ def main():
                                              split_at[1:]))
         ]
     }
-    with open('splits.json', 'w') as fp:
+
+    filename = 'splits.json'
+    if args.mode:
+        filename = 'splits_%s.json' % args.mode
+    with open(filename, 'w') as fp:
         json.dump(obj, fp, indent=4)
 
 
