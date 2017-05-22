@@ -9,6 +9,8 @@ and waiting for the fade to black.
 This is the principle used by `smb-frames.py` to produce splits
 for world record attempts at Super Mario Bros. All-Stars.
 
+NOTE: This script does not use axe timing for 8-4.
+
 The script uses Python with NumPy for fast numeric math,
 and invokes `ffmpeg` to crop the video to just the timer
 and extract the frames in that way.
@@ -91,7 +93,7 @@ Darkness at 0:00:46.766667
 8-1 37.67 (from 0:19:23.900000 to 0:20:01.566667)
 8-2 38.13 (from 0:20:02.900000 to 0:20:41.033333)
 8-3 38.70 (from 0:20:42.466667 to 0:21:21.166667)
-8-4 88.80 (from 0:21:22.633333 to 0:22:51.433333)
+8-4 88.80 (from 0:21:22.633333 to 0:22:51.433333)  # actually 26.43, 25 s before
 9-1 49.40 (from 0:22:52.666667 to 0:23:42.066667)
 9-2 39.43 (from 0:23:43.433333 to 0:24:22.866667)
 9-3 34.87 (from 0:24:24.200000 to 0:24:59.066667)
